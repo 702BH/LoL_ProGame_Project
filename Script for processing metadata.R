@@ -1,7 +1,5 @@
 # Script for processing metadata
 
-# set wd
-setwd("C:/Users/house/Desktop/Getting into Modelling/Scripts")
 library(tidyverse)
 library(httr)
 library(jsonlite)
@@ -36,6 +34,10 @@ test_content$stats_title
 
 # convert the JSON file
 json_data <- fromJSON(test_content$content)
+
+json_data$participants$teamId
+
+class(json_data$participants$teamId)
 
 # testing for v4 or v5
 if(str_detect(test_content$stats_title, "V4")){
