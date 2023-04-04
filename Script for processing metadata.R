@@ -35,7 +35,7 @@ test_content$stats_title
 # convert the JSON file
 json_data <- fromJSON(test_content$content)
 
-json_data$participants$teamId
+json_data$teams$teamId
 
 class(json_data$participants$teamId)
 
@@ -223,6 +223,14 @@ view(tester)
 
 
 
+
+
+
+
+
+
+
+
 ##### TIMELINE DATA
 raw_timeline_data <- read_csv("post_game_timeline_raw.csv", col_names = TRUE)
 
@@ -376,4 +384,7 @@ str(test_more_1)
 view(test_more)
 
 # adding title and game id
+
+
+
 

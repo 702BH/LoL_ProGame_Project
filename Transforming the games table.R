@@ -47,4 +47,4 @@ game_data_pivot_side_result <- game_data_pivot_side %>%
 
 view(game_data_pivot_side_result)
 
-write.csv(post_game_df_timeline, "post_game_timeline_raw.csv",  row.names = FALSE)
+write.csv(game_data_pivot_side_result, "games_transformed.csv",  row.names = FALSE)
