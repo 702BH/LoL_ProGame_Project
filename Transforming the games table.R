@@ -1,3 +1,8 @@
+library(tidyverse)
+library(httr)
+library(jsonlite)
+
+
 ## Transforming the games table
 raw_game_data <- read_csv("Games.csv", col_names = TRUE)
 
@@ -31,9 +36,15 @@ game_data_pivot_side <- game_data_pivot %>%
 
 
 # Add result
+colnames(game_data_pivot_side)
+game_data_pivot_side_result <- game_data_pivot_side %>%
+  mutate(result = case_when(
+    WinTeam ==  team_name ~ 1,
+    TRUE ~ 0
+    
+  ))
 
 
-
-view(game_data_pivot_side)
+view(game_data_pivot_side_result)
 
 write.csv(post_game_df_timeline, "post_game_timeline_raw.csv",  row.names = FALSE)
