@@ -167,3 +167,49 @@ str(test_list2)
 
 
 ##### TEAM DATA
+processed_data <- lapply(test_list2, function_1)
+
+str(processed_data)
+
+json_data <- fromJSON(test_content$content)
+teams <- json_data$teams
+
+team_objectives <- teams$objectives
+
+unnest_obj <- do.call(data.frame, team_objectives)
+
+test <- teams %>%
+  select(-objectives)
+
+test <- cbind(test, unnest_obj)
+
+tester <- test %>%
+  unnest_wider(bans, names_sep = ".") %>%
+  select(-bans.pickTurn)
+
+tester$bans.championId <- lapply(tester$bans.championId, function(x) champ_names_df$name[match(x, champ_names_df$key)])
+
+view(tester)
+
+tester$bans.championId
+
+tester$bans.championId
+
+
+tester$bans.championId <- sapply(tester$bans.championId, paste, collapse = ",")
+
+view(tester)
+
+tester2 <- tester %>%
+  separate(bans.championId, into = paste0("Ban", 1:5), sep = ",")
+
+
+view(tester2)
+
+view(tester2)
+
+colnames(tester2) <- paste0("Ban", 1:5)
+
+view(tester2)
+
+view(test3)
