@@ -335,3 +335,87 @@ test_v5_timeline_2$stats_title
 test_V5_timeline_1$stats_title
 
 test_list2_timeline <- list(test_V5_timeline_1, test_v5_timeline_2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### V4 Data
+### Stats page
+
+# get testing data
+title1 <- "V4 data:ESPORTSTMNT04 1480651"
+title2 <- "V4 data:ESPORTSTMNT04 1480665"
+
+post_game_list_stats <- list()
+api_base_url_post <- "https://lol.fandom.com/api.php"
+
+query_param <- list(
+  action = "query",
+  format = "json",
+  prop = "revisions",
+  titles = title2,
+  rvprop = "content",
+  rvslots = "main"
+)
+
+match_api_data <- GET(api_base_url_post, query = query_param)
+
+api_content <- content(match_api_data)
+
+titles_and_content <- lapply(api_content$query$pages, function(page){
+  title <- page$title
+  content <- page$revisions[[1]][[1]]$main$`*`
+  list(stats_title = title, content = content)
+})
+
+test_df <- map_df(titles_and_content, ~as.data.frame(.x), .default = NA)
+
+post_game_list_stats[[1]] <- test_df
+
+post_game_df <- bind_rows(post_game_list_stats)
+
+post_game_df$stats_title
+
+my_list <- lapply(seq_len(nrow(post_game_df)), function(i){
+  list(stats_title = post_game_df[i, "stats_title"], content =post_game_df$content[i])
+  
+})
+
+my_list[[1]]$stats_title
+length(my_list)
+
+test_v4_stats_2 <- my_list[[1]]
+test_v4_stats_2$stats_title
+
+saveRDS(test_v4_stats_2, file = "Testv4_stats_2.RData")
+
+
+
+# processing test data
+
+
+
