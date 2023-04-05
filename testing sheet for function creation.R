@@ -416,6 +416,46 @@ saveRDS(test_v4_stats_2, file = "Testv4_stats_2.RData")
 
 
 # processing test data
+# test 1
+json_data <- fromJSON(test_v4_stats_1$content)
+particpants <- json_data$participants
+
+part_identities <- json_data$participantIdentities %>%
+  unnest(player) %>%
+  select(-profileIcon)
+
+# seperate team name and player name
+sep_identities <- function_4(part_identities)
+
+view(sep_identities)
+
+# prepare participants data
+str(particpants)
+
+test <- particpants %>%
+  select(-c(timeline, participantId)) %>%
+  unnest(stats)
+
+# add useful
+test <- function_3(test_v4_stats_1, json_data, test)
+
+test_join <- left_join(test, sep_identities, by = "participantId")
+
+test_join$title
+
+# replace item ids with item names
+test_join_item <- function_5(test_join)
+
+test_join_item$item0
+
+# replace summoner spell ids with names
+test_join_spell <- function_6(test_join_item)
 
 
+# convert NA
+# convert logicals
+
+
+# add champion names
+test_join_spell$championId <- sapply(test_join_spell$championId, function(col) unlist(champ_names_df[match(col, champ_names_df$key), "name"]))
 
