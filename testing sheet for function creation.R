@@ -4,6 +4,7 @@ item_helper <- read_csv("item_name_id.csv", col_names = TRUE)
 summoner_spell_helper <- read_csv("summoner_spell_id_name.csv", col_names = TRUE)
 
 
+###### PArticipants data
 
 ## function 3 adding relationship information
 
@@ -57,7 +58,7 @@ participants_t$item0
 
 class(participants_t$item0$item_name)
 
-participants_t$item0$
+participants_t$item0
 
 participants_t[, grep("^item\\d+$", colnames(participants_t))]
 
@@ -69,3 +70,100 @@ class(participants_t[, grep("^item\\d+$", colnames(participants_t))])
 str(participants_t$item0)
 
 view(participants_t[, grep("^item\\d+$", colnames(participants_t))])
+
+
+test_content$stats_title$stats_title
+participants_t$teamId
+
+# join info from games data
+games_filtered <- games_table %>%
+  filter(StatsPage == test_content$stats_title$stats_title) %>%
+  select(Gamelength, Patch, StatsPage, team_name, reference_team_key, side, result)
+
+view(games_filtered)
+
+test_part_join_games <- left_join(participants_t, games_filtered, by = c("title" = "StatsPage", "teamId" = "reference_team_key"))
+
+colnames(test_part_join_games)
+
+view(test_part_join_games$team_name)
+
+
+test_part_join_games_2 <- left_join(participants_t, games_table, by = c("title" = "StatsPage", "teamId" = "reference_team_key"))
+
+view(test_part_join_games_2$team_name)
+colnames(test_part_join_games_2)
+
+
+
+## getting a second V5 for testing
+view(games_table)
+test_content$stats_title$stats_title
+title <- "V5 data:ESPORTSTMNT03 3087499"
+
+post_game_list_stats <- list()
+api_base_url_post <- "https://lol.fandom.com/api.php"
+
+query_param <- list(
+  action = "query",
+  format = "json",
+  prop = "revisions",
+  titles = title,
+  rvprop = "content",
+  rvslots = "main"
+)
+
+match_api_data <- GET(api_base_url_post, query = query_param)
+
+api_content <- content(match_api_data)
+
+titles_and_content <- lapply(api_content$query$pages, function(page){
+  title <- page$title
+  content <- page$revisions[[1]][[1]]$main$`*`
+  list(stats_title = title, content = content)
+})
+
+test_df <- map_df(titles_and_content, ~as.data.frame(.x), .default = NA)
+
+post_game_list_stats[[1]] <- test_df
+
+post_game_df <- bind_rows(post_game_list_stats)
+
+my_list <- lapply(seq_len(nrow(post_game_df)), function(i){
+  list(stats_title = post_game_df[i, "stats_title"], content =post_game_df$content[i])
+  
+})
+
+my_list
+test_content_2 <- my_list[[1]]$content
+test_content_2$stats_title
+
+saveRDS(test_content_2, file = "TestV5_2.RData")
+
+test_V5_1 <- list(stats_title = test_content$stats_title$stats_title, content = test_content$content)
+
+test_V5_1$stats_title
+
+# creating list?
+test_list <- c(test_V5_1, test_V5_2)
+
+test_V5_1
+
+test_list[[1]]
+
+test_V5_1$stats_title
+
+test_v5_2$stats_title
+
+test_V5_1$content
+
+str(test_list)
+
+test_list2 <- list(test_V5_1, test_v5_2)
+
+str(test_list2)
+
+
+
+
+##### TEAM DATA
