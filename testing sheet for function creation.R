@@ -213,3 +213,125 @@ colnames(tester2) <- paste0("Ban", 1:5)
 view(tester2)
 
 view(test3)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##### TIMELINE DATA
+test_content_timeline <- readRDS("processing_test_timeline_data.RData")
+
+json_data_timeline <- fromJSON(test_content_timeline$content)
+
+## Participant frames
+frames <- json_data_timeline$frames$timestamp
+
+frames
+
+part_frames <- json_data_timeline$frames$participantFrames
+
+view(part_frames)
+
+# bind these together
+frames_bind <- cbind(part_frames, frames)
+
+# pivot longer
+frames_pivot <- pivot_longer(frames_bind, 1:10)
+
+participant_frames_final <- frames_pivot %>%
+  unnest(value) %>%
+  unnest(championStats) %>%
+  unnest(damageStats) %>%
+  unnest(position)
+
+view(participant_frames_final)
+
+colnames(participant_frames_final)
+
+
+## events
+events <- tibble(events = json_data_timeline$frames$events)
+
+
+events_tidy <- events %>%
+  unnest(events) %>%
+  unnest(position) %>%
+  unnest_wider(victimDamageDealt, names_sep = ".") %>%
+  unnest_wider(victimDamageReceived, names_sep = ".")
+
+
+unique(events_tidy$type)
+
+dim(events_tidy)
+
+which(sapply(events_tidy, function(x) is.data.frame(x)))
+
+
+
+### get another timeline data for testing!
+test_content_timeline$stats_title$stats_title
+
+
+view(games_table)
+title <- "V5 data:ESPORTSTMNT03 3087499/Timeline"
+
+post_game_list_timeline <- list() 
+api_base_url_post <- "https://lol.fandom.com/api.php"
+
+query_param <- list(
+  action = "query",
+  format = "json",
+  prop = "revisions",
+  titles = title,
+  rvprop = "content",
+  rvslots = "main"
+)
+
+match_api_data <- GET(api_base_url_post, query = query_param)
+
+api_content <- content(match_api_data)
+
+titles_and_content_timeline <- lapply(api_content$query$pages, function(page){
+  title <- page$title
+  content <- page$revisions[[1]][[1]]$main$`*`
+  list(stats_title = title, content = content)
+})
+
+test_df <- map_df(titles_and_content_timeline, ~as.data.frame(.x), .default = NA)
+
+post_game_list_timeline[[1]] <- test_df
+
+post_game_df <- bind_rows(post_game_list_timeline)
+
+my_list_timeline <- lapply(seq_len(nrow(post_game_df)), function(i){
+  list(stats_title = post_game_df[i, "stats_title"], content =post_game_df$content[i])
+  
+})
+
+my_list_timeline[[1]]$content
+
+# testing data
+test_content_timeline_2 <- my_list_timeline[[1]]
+test_content_timeline_2
+saveRDS(test_content_timeline_2, file = "TestV5_timeline_2.RData")
+
+
+
+test_V5_timeline_1 <- list(stats_title = test_content_timeline$stats_title$stats_title, content = test_content_timeline$content)
+
+test_v5_timeline_2$stats_title
+test_V5_timeline_1$stats_title
+
+test_list2_timeline <- list(test_V5_timeline_1, test_v5_timeline_2)
