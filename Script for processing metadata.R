@@ -311,6 +311,8 @@ events <- tibble(events = json_data_timeline$frames$events)
 
 view(events)
 
+colnames(events)
+
 test2 <- events %>%
   unnest(events) %>%
   unnest(position) %>%
