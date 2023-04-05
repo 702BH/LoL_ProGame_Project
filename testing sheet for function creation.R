@@ -490,3 +490,4 @@ class(teams$win)
 
 
 # prepare list for testing!
+test_list_v4_stats <- list(test_v4_stats_1, test_v4_stats_2)
