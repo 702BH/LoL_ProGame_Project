@@ -416,6 +416,7 @@ saveRDS(test_v4_stats_2, file = "Testv4_stats_2.RData")
 
 
 # processing test data
+## partiticpants
 # test 1
 json_data <- fromJSON(test_v4_stats_1$content)
 particpants <- json_data$participants
@@ -459,3 +460,33 @@ test_join_spell <- function_6(test_join_item)
 # add champion names
 test_join_spell$championId <- sapply(test_join_spell$championId, function(col) unlist(champ_names_df[match(col, champ_names_df$key), "name"]))
 
+
+# teams
+teams <- json_data$teams
+
+view(teams)
+
+colnames(teams)
+str(teams)
+
+# process bans
+teams <- teams %>%
+  unnest_wider(bans, names_sep = ".") %>%
+  select(-bans.pickTurn)
+
+view(teams$bans.championId)
+
+teams$bans.championId <- lapply(teams$bans.championId, function(x) champ_names_df$name[match(x, champ_names_df$key)])
+
+teams$bans.championId <- sapply(teams$bans.championId, paste, collapse = ",")
+
+teams <- teams %>%
+  separate(bans.championId, into = paste0("Ban", 1:5), sep = ",")
+
+view(teams)
+
+class(teams$win)
+
+
+
+# prepare list for testing!

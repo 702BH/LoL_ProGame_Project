@@ -29,6 +29,41 @@ test_v4_stats_2$stats_title
 ## Participant
 
 
+function_0_v4 <- function(list_to_processes, games_data){
+  
+  processed_data <- lapply(list_to_processes, function_1_v4)
+  
+  parts_table <- lapply(processed_data, function(x) x[[1]])
+  teams_table <- lapply(processed_data, function(x) x[[2]])
+  
+  final_parts <- bind_rows(parts_table)
+  final_teams <- bind_rows(teams_table)
+  
+  final_parts <- function_9(final_parts, games_data)
+  final_teams <- function_9(final_teams, games_data)
+  
+  return(list(final_parts, final_teams))
+  
+  
+}
+
+processed_test_v4 <- function_0_v4(test_list_v4_stats, games_table)
+
+length(processed_test_v4)
+
+str(processed_test_v4)
+
+processed_parts <- processed_test_v4[[1]]
+
+processed_teams <- processed_test_v4[[2]]
+
+
+processed_parts$team_name
+processed_teams$team_name
+processed_parts$team_short
+
+view(processed_teams)
+
 
 function_1_v4 <- function(raw_data){
   
@@ -61,13 +96,20 @@ function_1_v4 <- function(raw_data){
   #  seperate team name and player name
   participants <- function_4_v4(json_data, participants)
   
-  return(participants)
+  
+  
+  ## Teams data
+  teams <- function_5_v4(json_data)
+  
+  teams <- function_8(teams)
+  
+  teams <- function_3(raw_data_file, json_data, teams)
+  
+  return(list(participants, teams))
   
 }
 
 test_v4_func <- function_1_v4(test_v4_stats_1)
-
-test_v4_func$title
 
 
 # get the participants structure
@@ -105,5 +147,26 @@ function_4_v4 <- function(json_data, processing_data){
   identities_join <-left_join(processing_data, sep_identities, by = "participantId")
   
   return(identities_join)
+  
+}
+
+# teams data
+function_5_v4 <- function(data){
+  
+  teams <- data$teams
+  
+  teams <- teams %>%
+    unnest_wider(bans, names_sep = ".") %>%
+    select(-bans.pickTurn)
+  
+  teams$bans.championId <- lapply(teams$bans.championId, function(x) champ_names_df$name[match(x, champ_names_df$key)])
+  
+  teams$bans.championId <- sapply(teams$bans.championId, paste, collapse = ",")
+  
+  teams <- teams %>%
+    separate(bans.championId, into = paste0("Ban", 1:5), sep = ",")
+  
+  return(teams)
+  
   
 }
