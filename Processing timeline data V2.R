@@ -30,11 +30,12 @@ function_0_timeline <- function(list_to_processes){
   
   parts_table <- lapply(processed_data, function(x) x[[1]])
   events_table <- lapply(processed_data, function(x) x[[2]])
+  error_titles <- lapply(processed_data, function(x) x[[3]])
   
   final_parts <- bind_rows(parts_table)
   final_events <- bind_rows(events_table)
   
-  return(list(final_parts, final_events))
+  return(list(final_parts, final_events, error_titles))
   
 }
 
@@ -56,25 +57,35 @@ function_1_timeline <- function(raw_data){
   
   raw_data_file <- raw_data
   
-  # old method
-  json_data <- fromJSON(raw_data$content)
   
-  ## Participant frames
-  participant_frames <- function_2_timeline(json_data)
+  tryCatch({
+    
+    # old method
+    json_data <- fromJSON(raw_data$content)
+    
+    ## Participant frames
+    participant_frames <- function_2_timeline(json_data)
+    
+    # add game id and title
+    participant_frames <- function_3(raw_data_file, json_data, participant_frames)
+    
+    # add team ids
+    participant_frames <- function_3_timeline(participant_frames)
+    
+    
+    ## events
+    events <- function_4_timeline(json_data)
+    
+    events <- function_3(raw_data_file, json_data, events)
+    
+    return(list(participant_frames, events, NULL))
+    
+    
+  }, error = function(e){
+    
+    return(list(NULL, NULL, raw_data$stats_title))
+  })
   
-  # add game id and title
-  participant_frames <- function_3(raw_data_file, json_data, participant_frames)
-  
-  # add team ids
-  participant_frames <- function_3_timeline(participant_frames)
-  
-  
-  ## events
-  events <- function_4_timeline(json_data)
-  
-  events <- function_3(raw_data_file, json_data, events)
-  
-  return(list(participant_frames, events))
   
 }
 

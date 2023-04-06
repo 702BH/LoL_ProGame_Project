@@ -39,6 +39,7 @@ function_0 <- function(list_to_processes, games_data){
   
   parts_table <- lapply(processed_data, function(x) x[[1]])
   teams_table <- lapply(processed_data, function(x) x[[2]])
+  error_titles <- lapply(processed_data, function(x) x[[3]])
   
   final_parts <- bind_rows(parts_table)
   final_teams <- bind_rows(teams_table)
@@ -46,7 +47,7 @@ function_0 <- function(list_to_processes, games_data){
   final_parts <- function_9(final_parts, games_data)
   final_teams <- function_9(final_teams, games_data)
   
-  return(list(final_parts, final_teams))
+  return(list(final_parts, final_teams, error_titles))
   
 }
 
@@ -71,36 +72,43 @@ function_1 <- function(raw_data){
   
   raw_data_file <- raw_data
   
-  # parse json
-  # old method
-  json_data <- fromJSON(raw_data$content)
+  tryCatch({
+    # parse json
+    # old method
+    json_data <- fromJSON(raw_data$content)
+    
+    # function 2 - process structure
+    participants <- function_2(json_data)
+    
+    # function 3 - adding relationship informaiton
+    participants <- function_3(raw_data_file, json_data, participants)
+    
+    participants <- function_4(participants)
+    
+    participants <- function_5(participants)
+    
+    participants <- function_6(participants)
+    
+    participants <- function_7(participants)
+    
+    participants <- function_8(participants)
+    
+    
+    
+    ## team data
+    teams <- function_10(json_data)
+    
+    teams <- function_8(teams)
+    
+    teams <- function_3(raw_data_file, json_data, teams)
+    
+    return(list(participants, teams, NULL))
+    
+  }, error = function(e){
+    
+    return(list(NULL, NULL, raw_data$stats_title))
+  })
   
-  # function 2 - process structure
-  participants <- function_2(json_data)
-  
-  # function 3 - adding relationship informaiton
-  participants <- function_3(raw_data_file, json_data, participants)
-  
-  participants <- function_4(participants)
-  
-  participants <- function_5(participants)
-  
-  participants <- function_6(participants)
-  
-  participants <- function_7(participants)
-  
-  participants <- function_8(participants)
-  
-  
-  
-  ## team data
-  teams <- function_10(json_data)
-  
-  teams <- function_8(teams)
-  
-  teams <- function_3(raw_data_file, json_data, teams)
-  
-  return(list(participants, teams))
   
 }
 

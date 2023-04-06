@@ -35,6 +35,8 @@ function_0_v4 <- function(list_to_processes, games_data){
   
   parts_table <- lapply(processed_data, function(x) x[[1]])
   teams_table <- lapply(processed_data, function(x) x[[2]])
+  error_titles <- lapply(processed_data, function(x) x[[3]])
+  
   
   final_parts <- bind_rows(parts_table)
   final_teams <- bind_rows(teams_table)
@@ -42,7 +44,7 @@ function_0_v4 <- function(list_to_processes, games_data){
   final_parts <- function_9(final_parts, games_data)
   final_teams <- function_9(final_teams, games_data)
   
-  return(list(final_parts, final_teams))
+  return(list(final_parts, final_teams, error_titles))
   
   
 }
@@ -69,43 +71,53 @@ function_1_v4 <- function(raw_data){
   
   raw_data_file <- raw_data
   
-  # parse json
-  json_data <- fromJSON(raw_data$content)
+  tryCatch({
+    
+    # parse json
+    json_data <- fromJSON(raw_data$content)
+    
+    # Participants
+    participants <- function_2_v4(json_data)
+    
+    # add useful relationship information
+    participants <- function_3(raw_data_file, json_data, participants)
+    
+    # replace item ids with item names
+    participants <- function_5(participants)
+    
+    # replace summoner spell ids with names
+    participants <- function_6(participants)
+    
+    # replace champion ID with names
+    participants <- function_3_v4(participants)
+    
+    # convert NA to 0
+    participants <- function_7(participants)
+    
+    # convert logicals
+    participants <- function_8(participants)
+    
+    #  seperate team name and player name
+    participants <- function_4_v4(json_data, participants)
+    
+    
+    
+    ## Teams data
+    teams <- function_5_v4(json_data)
+    
+    teams <- function_8(teams)
+    
+    teams <- function_3(raw_data_file, json_data, teams)
+    
+    return(list(participants, teams, NULL))
+    
+  }, error = function(e){
+    
+    return(list(NULL, NULL, raw_data$stats_title))
+    
+  })
   
-  # Participants
-  participants <- function_2_v4(json_data)
   
-  # add useful relationship information
-  participants <- function_3(raw_data_file, json_data, participants)
-  
-  # replace item ids with item names
-  participants <- function_5(participants)
-  
-  # replace summoner spell ids with names
-  participants <- function_6(participants)
-  
-  # replace champion ID with names
-  participants <- function_3_v4(participants)
-  
-  # convert NA to 0
-  participants <- function_7(participants)
-  
-  # convert logicals
-  participants <- function_8(participants)
-  
-  #  seperate team name and player name
-  participants <- function_4_v4(json_data, participants)
-  
-  
-  
-  ## Teams data
-  teams <- function_5_v4(json_data)
-  
-  teams <- function_8(teams)
-  
-  teams <- function_3(raw_data_file, json_data, teams)
-  
-  return(list(participants, teams))
   
 }
 
