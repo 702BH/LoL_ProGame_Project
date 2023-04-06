@@ -491,3 +491,106 @@ class(teams$win)
 
 # prepare list for testing!
 test_list_v4_stats <- list(test_v4_stats_1, test_v4_stats_2)
+
+
+
+
+
+
+
+### timeline page
+# get testing data
+title1 <- "V4 data:ESPORTSTMNT04 1480651/Timeline"
+title2 <- "V4 data:ESPORTSTMNT04 1480665/Timeline"
+
+post_game_list_stats <- list()
+api_base_url_post <- "https://lol.fandom.com/api.php"
+
+query_param <- list(
+  action = "query",
+  format = "json",
+  prop = "revisions",
+  titles = title2,
+  rvprop = "content",
+  rvslots = "main"
+)
+
+match_api_data <- GET(api_base_url_post, query = query_param)
+
+api_content <- content(match_api_data)
+
+titles_and_content <- lapply(api_content$query$pages, function(page){
+  title <- page$title
+  content <- page$revisions[[1]][[1]]$main$`*`
+  list(stats_title = title, content = content)
+})
+
+test_df <- map_df(titles_and_content, ~as.data.frame(.x), .default = NA)
+
+post_game_list_stats[[1]] <- test_df
+
+post_game_df <- bind_rows(post_game_list_stats)
+
+post_game_df$stats_title
+
+my_list <- lapply(seq_len(nrow(post_game_df)), function(i){
+  list(stats_title = post_game_df[i, "stats_title"], content =post_game_df$content[i])
+  
+})
+
+my_list[[1]]$stats_title
+length(my_list)
+
+test_v4_timeline_2 <- my_list[[1]]
+test_v4_timeline_2$stats_title
+
+saveRDS(test_v4_timeline_2, file = "Testv4_timeline_2.RData")
+
+
+## Processing test data 1
+test_v4_timeline_1
+
+# participants
+json_data <- fromJSON(test_v4_timeline_1$content)
+
+frames <- json_data$frames$timestamp
+part_frames <- json_data$frames$participantFrames
+
+bind_frames <- cbind(part_frames, frames)
+
+frames_pivot <- pivot_longer(bind_frames, 1:10)
+
+colnames(frames_pivot)
+
+participant_frames_final <- frames_pivot %>%
+  unnest(value) %>%
+  unnest(position)
+
+view(participant_frames_final)
+
+colnames(participant_frames_final)
+
+
+add_team <- function_3_timeline(participant_frames_final)
+
+add_team$teamId
+
+
+# events
+events <- tibble(events = json_data$frames$events)
+
+view(events)
+
+events
+
+events_tidy <- events %>%
+  unnest(events) %>%
+  unnest(position)
+
+str(events_tidy)
+
+dim(events_tidy)
+
+
+# prepare list for testing!
+test_list_v4_timeline <- list(test_v4_timeline_1, test_v4_timeline_2)
