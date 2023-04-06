@@ -34,6 +34,7 @@ test_v5_2 <- readRDS("TestV5_2.RData")
 
 function_0 <- function(list_to_processes, games_data){
   
+  # old method
   processed_data <- lapply(list_to_processes, function_1)
   
   parts_table <- lapply(processed_data, function(x) x[[1]])
@@ -71,6 +72,7 @@ function_1 <- function(raw_data){
   raw_data_file <- raw_data
   
   # parse json
+  # old method
   json_data <- fromJSON(raw_data$content)
   
   # function 2 - process structure
@@ -164,8 +166,9 @@ function_3 <- function(raw_data_, json_data_, processing_data){
   processing_data$gameId <- json_data_$gameId
   
   # add title (FIX!!! SO WE DONT HAVE TO ESCAPE THE TIBBLE!!!!)
-  processing_data$title <- raw_data_$stats_title
   
+  # old method
+  processing_data$title <- raw_data_$stats_title
   return(processing_data)
   
 }

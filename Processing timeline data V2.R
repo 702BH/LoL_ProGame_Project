@@ -25,6 +25,7 @@ test_v5_timeline_2 <-readRDS("TestV5_timeline_2.RData")
 
 function_0_timeline <- function(list_to_processes){
   
+  # old method
   processed_data <- lapply(list_to_processes, function_1_timeline)
   
   parts_table <- lapply(processed_data, function(x) x[[1]])
@@ -55,6 +56,7 @@ function_1_timeline <- function(raw_data){
   
   raw_data_file <- raw_data
   
+  # old method
   json_data <- fromJSON(raw_data$content)
   
   ## Participant frames
