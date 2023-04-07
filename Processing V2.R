@@ -21,6 +21,7 @@ test_content <- readRDS("processing_test_data.RData")
 
 test_V5_1 <- list(stats_title = test_content$stats_title$stats_title, content = test_content$content)
 
+test_V5_1$stats_title
 
 test_content_timeline <- readRDS("processing_test_timeline_data.RData")
 
