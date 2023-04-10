@@ -12,12 +12,196 @@ champ_names_df <- read_csv("champ_id_name.csv", col_names = TRUE)
 
 
 
+# combine function
+function_process_combine <- function(data){
+  
+  # test list valid
+  test_output <- function_check_input_valid_return(data)
+  
+  valid <- test_output[[1]]
+  invalid <- test_output[[2]]
+  
+  # seperate valid lists
+  v5_index <- unlist(lapply(valid, function(x) str_detect(x$stats_title, "V5")))
+  timeline_index <- unlist(lapply(valid, function(x) str_detect(x$stats_title, "/Timeline")))
+  
+  v5_stats_list <- valid[v5_index & !timeline_index]
+  v5_timeline_list <- valid[v5_index & timeline_index]
+  
+  v4_stats_list <- valid[!v5_index & !timeline_index]
+  v4_timeline_list <- valid[!v5_index & timeline_index]
+  
+  
+  error_titles <- c()
+  
+  # V5
+  # stats
+  if(length(v5_stats_list) > 0){
+    
+    v5_stats <- function_process_control(v5_stats_list, "stats")
+    v5_participant_stats <- v5_stats[[1]]
+    v5_team_stats <- v5_stats[[2]]
+    
+    error_titles <- c(error_titles, v5_stats[[3]])
+    
+  }else{
+    v5_participant_stats <- list()
+    v5_team_stats <- list()
+  }
+  
+  
+  # timeline
+  if(length(v5_timeline_list) > 0){
+    v5_timeline <- function_process_control(v5_timeline_list, "Timeline")
+    v5_timeline_parts <- v5_timeline[[1]]
+    v5_timeline_events <- v5_timeline[[2]]
+    
+    error_titles <- c(error_titles, v5_timeline[[3]])
+    
+  }else{
+    v5_timeline_parts <- list()
+    v5_timeline_events <- list()
+  }
+  
+  
+  # v4
+  # stats
+  if(length(v4_stats_list) > 0){
+    
+    v4_stats <- function_process_control(v4_stats_list, "stats")
+    v4_participant_stats <- v5_stats[[1]]
+    v4_team_stats <- v4_stats[[2]]
+    
+    error_titles <- c(error_titles, v4_stats[[3]])
+    
+  }else{
+    v4_participant_stats <-list()
+    v4_team_stats <- list()
+  }
+  
+  
+  # timeline
+  if(length(v4_timeline_list) > 0){
+    v4_timeline <- function_process_control(v4_timeline_list, "Timeline")
+    v4_timeline_parts <- v4_timeline[[1]]
+    v4_timeline_events <- v4_timeline[[2]]
+    
+    error_titles <- c(error_titles, v4_timeline[[3]])
+    
+  }else{
+    v4_timeline_parts <- list()
+    v4_timeline_events <- list()
+  }
+  
+  
+  return(list(v5_participant_stats = v5_participant_stats, v5_team_stats = v5_team_stats, v4_participant_stats = v4_participant_stats, v4_team_stats = v4_team_stats, v5_timeline_parts = v5_timeline_parts,
+              v5_timeline_events = v5_timeline_events, v4_timeline_parts = v4_timeline_parts, v4_timeline_events = v4_timeline_events,
+              error_matches = error_titles))
+  
+  
+  
+  
+}
+
+
+
+# helper functions
+function_check_input_valid <- function(list){
+  # check current element is a list
+  
+  if(is.list(list) && all(c("stats_title", "content") %in% names(list))){
+    content <- list[["content"]]
+    if(is.character(content) && !is.na(content)){
+      if(validate(content)){
+        return(TRUE)
+      }
+    }
+  }
+  return(FALSE)
+  
+}
+
+
+
+function_check_input_valid_return <- function(list){
+  
+  check_list_results <- unlist(lapply(list, function_check_input_valid))
+  
+  valid_lists <- list[check_list_results]
+  invalid_lists <- list[!check_list_results]
+  
+  return(list(valid_lists, invalid_lists))
+}
+
+
+
+
+
+
 #### STATS DATA
 
 
 
 
-# function_0?
+# function_0
+function_process_control <- function(list_to_process, data_type){
+  
+  # check data type
+  if(!str_detect(data_type, "Timeline")){
+    
+    # then its stats
+    processed_data <- lapply(list_to_process, function_stats_data)
+    
+    parts_table <- lapply(processed_data, function(x) x[[1]])
+    teams_table <- lapply(processed_data, function(x) x[[2]])
+    error_titles <- lapply(processed_data, function(x) x[[3]])
+    
+    final_parts <- bind_rows(parts_table)
+    final_teams <- bind_rows(teams_table)
+    
+    final_parts <- function_join_game_info(final_parts)
+    final_teams <- function_join_game_info(final_teams)
+    
+    return(list(final_parts, final_teams, error_titles))
+    
+    
+    
+  }else{
+    
+    # then its timeline
+    
+    processed_data <- lapply(list_to_process, function_timeline_data)
+    
+    parts_table <- lapply(processed_data, function(x) x[[1]])
+    events_table <- lapply(processed_data, function(x) x[[2]])
+    error_titles <- lapply(processed_data, function(x) x[[3]])
+    
+    final_parts <- bind_rows(parts_table)
+    final_events <- bind_rows(events_table)
+    
+    return(list(final_parts, final_events, error_titles))
+    
+    
+  }
+  
+  
+  
+}
+
+
+
+function_join_game_info <- function(processed_tibble){
+  
+  games_select <- games_table %>%
+    select(Gamelength, Patch, StatsPage, team_name, reference_team_key, side, result)
+  
+  joined_df <- left_join(processed_tibble, games_select, by = c("title" = "StatsPage", "teamId" = "reference_team_key"))
+  
+  return(joined_df)
+  
+}
+
+
 
 
 
@@ -66,10 +250,11 @@ function_stats_data <- function(raw_data){
     # add useful relationship information
     teams <- function_add_relationships(raw_data_file, json_data, teams)
     
-    return(list(participants, teams))
+    return(list(participants, teams, NULL))
       
   } else{
     # its a fail!
+    return(list(NULL, NULL, raw_data_file))
     
   }
   
@@ -211,8 +396,8 @@ function_flatten_teams <- function(data){
 #### TIMELINE DATA
 function_timeline_data <- function(raw_data){
   
-  
   raw_data_file <- raw_data
+  print(raw_data$stats_title)
   
   json_data <- fromJSON(raw_data$content)
   
@@ -236,19 +421,19 @@ function_timeline_data <- function(raw_data){
     
     events <- function_add_relationships(raw_data_file, json_data, events)
     
-    return(list(participant_frames, events))
+    return(list(participant_frames, events, NULL))
     
     
   }else{
     
     # it failed
+    return(list(NULL, NULL, raw_data_file))
+    
   }
   
   
 }
 
-
-test_timeline <- function_timeline_data(test_v5_timeline_2)
 
 
 function_flatten_timeline_participants <- function(data){
@@ -293,9 +478,12 @@ function_unnest_recursively_timeline <- function(df){
   if (length(df_cols) > 0){
     df <- df %>%
       unnest(all_of(df_cols), names_sep = ".") %>%
-      function_unnest_recursively()
+      function_unnest_recursively_timeline()
   }
   
   return(df)
   
 }
+
+
+
