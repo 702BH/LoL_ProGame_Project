@@ -119,9 +119,23 @@ view(df_dd_u)
 
 test_join <- left_join(b_df, df_dd_u, by = "event_id")
 
-view(test_join)
+view(test_join$victimDamageDealt.basic)
 
 # base df
 b_df <- new_df %>%
   select(-c(victimDamageReceived, victimDamageDealt))
 
+
+# damage recieved
+df_dr <- new_df %>%
+  select(-victimDamageDealt) %>%
+  select(event_id,victimDamageReceived)
+df_dr_u <- df_dr %>%
+  unnest(victimDamageReceived, names_sep = ".")
+
+
+view(df_dr_u)
+
+test_join2 <- left_join(test_join, df_dr_u, by = "event_id")
+
+view(test_join2$victimDamageDealt.basic)
