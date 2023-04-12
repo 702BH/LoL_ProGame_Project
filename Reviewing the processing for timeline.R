@@ -139,3 +139,111 @@ view(df_dr_u)
 test_join2 <- left_join(test_join, df_dr_u, by = "event_id")
 
 view(test_join2$victimDamageDealt.basic)
+
+
+
+
+
+# lets just try seperating into its own tables?
+json_content <- fromJSON(test_content_timeline$content)
+
+events <- tibble(events = json_content$frames$events)
+
+
+events <- events %>%
+  unnest(events) %>%
+  unnest(position)
+
+events <- events %>%
+  mutate(event_id = row_number())
+
+# victimdamagedealt
+victim_damage_dealt <- events %>%
+  select(event_id, victimDamageDealt) %>%
+  unnest(victimDamageDealt, names_sep = ".")
+
+view(victim_damage_dealt)
+
+events <- events %>%
+  select(-victimDamageDealt)
+
+df_cols <- victim_damage_dealt %>%
+  select_if(is.list) %>%
+  names()
+
+df_cols
+
+victim_damage_dealt <- victim_damage_dealt %>%
+  unnest(all_of(df_cols), names_sep = ".")
+
+
+view(victim_damage_dealt)
+
+# victim damage recieved
+victim_damage_recieved <- events %>%
+  select(event_id, victimDamageReceived)
+
+events <- events %>%
+  select(-victimDamageReceived)
+
+# assisting participants
+assist_parts <- events %>%
+  select(event_id, assistingParticipantIds)
+
+events <- events %>%
+  select(-assistingParticipantIds)
+
+view(assist_parts)
+
+class(assist_parts$assistingParticipantIds)
+
+t <- assist_parts %>%
+  unnest(assistingParticipantIds)
+
+view(t)
+
+
+
+# Now lets compare to V4 data
+test_v4_timeline_2 <- readRDS("Testv4_timeline_2.RData")
+
+json_content <- fromJSON(test_v4_timeline_2$content)
+
+events <- tibble(events = json_content$frames$events)
+
+events <- events %>%
+  unnest(events) %>%
+  unnest(position) %>%
+  mutate(event_id = row_number())
+
+
+view(events)
+
+df_cols <- events %>%
+  select_if(is.list) %>%
+  names()
+
+df_cols
+
+
+assist_parts <- events %>%
+  select(event_id, assistingParticipantIds)
+
+events <- events %>%
+  select(-assistingParticipantIds)
+
+view(assist_parts)
+
+class(assist_parts$event_id)
+
+t <- t2 %>%
+  unnest(assistingParticipantIds)
+
+names(assist_parts$assistingParticipantIds)
+
+view(assist_parts)
+
+t2 <- assist_parts %>%
+  filter(lengths(assistingParticipantIds) > 0)
+
+view(t2)

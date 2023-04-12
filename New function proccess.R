@@ -11,7 +11,6 @@ games_table <- read_csv("games_transformed.csv", col_names = TRUE)
 champ_names_df <- read_csv("champ_id_name.csv", col_names = TRUE)
 
 
-
 # combine function
 function_process_combine <- function(data){
   
@@ -22,7 +21,7 @@ function_process_combine <- function(data){
   invalid <- test_output[[2]]
   
   # seperate valid lists
-  v5_index <- unlist(lapply(valid, function(x) str_detect(x$stats_title, "V5")))
+  v5_index <- unlist(lapply(valid, function(x) str_detect(x$stats_title, "V5 ")))
   timeline_index <- unlist(lapply(valid, function(x) str_detect(x$stats_title, "/Timeline")))
   
   v5_stats_list <- valid[v5_index & !timeline_index]
@@ -54,13 +53,26 @@ function_process_combine <- function(data){
   if(length(v5_timeline_list) > 0){
     v5_timeline <- function_process_control(v5_timeline_list, "Timeline")
     v5_timeline_parts <- v5_timeline[[1]]
-    v5_timeline_events <- v5_timeline[[2]]
     
-    error_titles <- c(error_titles, v5_timeline[[3]])
+    v5_events_all <- v5_timeline[[2]]
+    v5_events_assit_parts <- v5_timeline[[3]]
+    v5_events_victim_damage_dealt <- v5_timeline[[4]]
+    v5_events_victim_damage_recieved <- v5_timeline[[5]]
+    
+    
+    
+    error_titles <- c(error_titles, v5_timeline[[6]])
     
   }else{
     v5_timeline_parts <- list()
     v5_timeline_events <- list()
+    
+    v5_events_all <- list()
+    v5_events_assit_parts <- list()
+    v5_events_victim_damage_dealt <- list()
+    v5_events_victim_damage_recieved <- list()
+    
+    
   }
   
   
@@ -69,7 +81,7 @@ function_process_combine <- function(data){
   if(length(v4_stats_list) > 0){
     
     v4_stats <- function_process_control(v4_stats_list, "stats")
-    v4_participant_stats <- v5_stats[[1]]
+    v4_participant_stats <- v4_stats[[1]]
     v4_team_stats <- v4_stats[[2]]
     
     error_titles <- c(error_titles, v4_stats[[3]])
@@ -84,19 +96,37 @@ function_process_combine <- function(data){
   if(length(v4_timeline_list) > 0){
     v4_timeline <- function_process_control(v4_timeline_list, "Timeline")
     v4_timeline_parts <- v4_timeline[[1]]
-    v4_timeline_events <- v4_timeline[[2]]
     
-    error_titles <- c(error_titles, v4_timeline[[3]])
+    v4_events_all <- v4_timeline[[2]]
+    v4_events_assit_parts <- v4_timeline[[3]]
+    v4_events_victim_damage_dealt <- v4_timeline[[4]]
+    v4_events_victim_damage_recieved <- v4_timeline[[5]]
+    
+    
+    error_titles <- c(error_titles, v4_timeline[[6]])
     
   }else{
     v4_timeline_parts <- list()
     v4_timeline_events <- list()
+    
+    v4_events_all <- list()
+    v4_events_assit_parts <- list()
+    v4_events_victim_damage_dealt <- list()
+    v4_events_victim_damage_recieved <- list()
+    
   }
   
   
-  return(list(v5_participant_stats = v5_participant_stats, v5_team_stats = v5_team_stats, v4_participant_stats = v4_participant_stats, v4_team_stats = v4_team_stats, v5_timeline_parts = v5_timeline_parts,
-              v5_timeline_events = v5_timeline_events, v4_timeline_parts = v4_timeline_parts, v4_timeline_events = v4_timeline_events,
-              error_matches = error_titles))
+  return(list(v5_participant_stats = v5_participant_stats, v5_team_stats = v5_team_stats, v4_participant_stats = v4_participant_stats, 
+              v4_team_stats = v4_team_stats, v5_timeline_parts = v5_timeline_parts,
+              v5_events_all = v5_events_all, v5_events_assit_parts = v5_events_assit_parts,
+              v5_events_victim_damage_dealt = v5_events_victim_damage_dealt, v5_events_victim_damage_recieved = v5_events_victim_damage_recieved, 
+              v4_timeline_parts = v4_timeline_parts, v4_events_all = v4_events_all,
+              v4_events_assit_parts = v4_events_assit_parts,
+              v4_events_victim_damage_dealt = v4_events_victim_damage_dealt,
+              v4_events_victim_damage_recieved = v4_events_victim_damage_recieved,
+              error_matches = error_titles,
+              invalid_lists = invalid))
   
   
   
@@ -176,10 +206,22 @@ function_process_control <- function(list_to_process, data_type){
     events_table <- lapply(processed_data, function(x) x[[2]])
     error_titles <- lapply(processed_data, function(x) x[[3]])
     
-    final_parts <- bind_rows(parts_table)
-    final_events <- bind_rows(events_table)
+    # add the seperate events tables
+    events_all <- lapply(events_table, function(x) x[[1]])
+    events_assit_parts <- lapply(events_table, function(x) x[[2]])
+    events_victim_damage_dealt <- lapply(events_table, function(x) x[[3]])
+    events_victim_damage_recieved <- lapply(events_table, function(x) x[[4]])
     
-    return(list(final_parts, final_events, error_titles))
+    
+    final_parts <- bind_rows(parts_table)
+    final_events_all <- bind_rows(events_all)
+    final_events_assit_parts <- bind_rows(events_assit_parts)
+    final_events_victim_damage_dealt <- bind_rows(events_victim_damage_dealt)
+    final_events_victim_damage_recieved <- bind_rows(events_victim_damage_recieved)
+    
+    return(list(final_parts, final_events_all, final_events_assit_parts,
+                final_events_victim_damage_dealt, final_events_victim_damage_recieved,
+                error_titles))
     
     
   }
@@ -193,15 +235,13 @@ function_process_control <- function(list_to_process, data_type){
 function_join_game_info <- function(processed_tibble){
   
   games_select <- games_table %>%
-    select(Gamelength, Patch, StatsPage, team_name, reference_team_key, side, result)
+    select(Tournament, Gamelength, Patch, StatsPage, team_name, reference_team_key, side, result)
   
   joined_df <- left_join(processed_tibble, games_select, by = c("title" = "StatsPage", "teamId" = "reference_team_key"))
   
   return(joined_df)
   
 }
-
-
 
 
 
@@ -221,7 +261,7 @@ function_stats_data <- function(raw_data){
     participants <- function_flatten_participants(json_data)
     
     # add useful relationship information
-    participants <- function_add_relationships(raw_data_file, json_data, participants)
+    participants <- function_add_relationships(participants, raw_data_file, json_data)
     
     #  seperate team name and player name
     participants <- function_sep_names(json_data, participants)
@@ -248,7 +288,7 @@ function_stats_data <- function(raw_data){
     teams <- function_logicals_to_int(teams)
     
     # add useful relationship information
-    teams <- function_add_relationships(raw_data_file, json_data, teams)
+    teams <- function_add_relationships(teams, raw_data_file, json_data)
     
     return(list(participants, teams, NULL))
       
@@ -275,7 +315,7 @@ function_flatten_participants <- function(data){
 
 
 
-function_add_relationships <- function(raw_data_, json_data_, processing_data){
+function_add_relationships <- function(processing_data, raw_data_, json_data_){
   
   # add game id
   processing_data$gameId <- json_data_$gameId
@@ -408,7 +448,7 @@ function_timeline_data <- function(raw_data){
     participant_frames <- function_flatten_timeline_participants(json_data)
     
     # add game id and title
-    participant_frames <- function_add_relationships(raw_data_file, json_data, participant_frames)
+    participant_frames <- function_add_relationships(participant_frames, raw_data_file, json_data)
     
     # add team ids
     participant_frames <- function_create_team_ids(participant_frames)
@@ -417,9 +457,11 @@ function_timeline_data <- function(raw_data){
     ## events
     events <- tibble(events = json_data$frames$events)
     
-    events <- function_unnest_recursively_timeline(events)
+    events <- function_process_events(events)
     
-    events <- function_add_relationships(raw_data_file, json_data, events)
+    events <-   lapply(events, function_add_relationships, raw_data_file, json_data)
+    
+    
     
     return(list(participant_frames, events, NULL))
     
@@ -433,7 +475,6 @@ function_timeline_data <- function(raw_data){
   
   
 }
-
 
 
 function_flatten_timeline_participants <- function(data){
@@ -486,4 +527,55 @@ function_unnest_recursively_timeline <- function(df){
 }
 
 
+function_process_events <- function(df){
+  
+  temp_df <- df %>%
+    unnest(events) %>%
+    unnest(position, names_sep = ".") %>%
+    mutate(event_id = row_number())
+  
+  # events df 
+  events <- temp_df 
+    
+  
+  assist_parts <- NULL
+  victim_damage_dealt <- NULL
+  victim_damage_recieved <- NULL
+  
+  # participants
+  if("assistingParticipantIds" %in% names(events)){
+    
+    assist_parts <- events %>%
+      select(event_id, assistingParticipantIds) %>%
+      filter(lengths(assistingParticipantIds) > 0) %>%
+      unnest(assistingParticipantIds, names_sep = ".")
+    
+    events <- events %>%
+      select(-assistingParticipantIds)
+  }
+  if("victimDamageDealt" %in% names(events)){
+    
+    victim_damage_dealt <- events %>%
+      select(event_id, victimDamageDealt) %>%
+      unnest(victimDamageDealt, names_sep = ".")
+    
+    events <- events %>%
+      select(-victimDamageDealt)
+    
+    
+  }
+  if("victimDamageReceived" %in% names(events)){
+    victim_damage_recieved <- events %>%
+      select(event_id, victimDamageReceived) %>%
+      unnest(victimDamageReceived, names_sep = ".")
+    
+    events <- events %>%
+      select(-victimDamageReceived)
+    
+    
+  }
+  
+  return(list(events, assist_parts, victim_damage_dealt, victim_damage_recieved))
+  
+}
 

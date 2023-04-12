@@ -208,3 +208,92 @@ totals_recieved <- events_kill_all %>%
             total_true_damage = sum(victimDamageReceived.trueDamage))
 
 view(totals_recieved)  
+
+
+
+
+
+
+# New tests, 12/04/2023
+testing_function <- function_process_combine(test_list)
+
+# error:
+# Error in function_process_combine(test_list) : 
+# object 'v4_events_all' not found
+
+# forgot to initialise empty lists
+
+testing_function <- function_process_combine(test_list)
+
+# so we should have 15
+length(testing_function)
+# we do
+
+# since this testing data only contained V5, V5 should all be filled.
+view(testing_function$v5_timeline_parts)
+
+# the timeline data has not worked
+
+# testing the function controller:
+processed_data <- lapply(test_input_timeline, function_timeline_data)
+
+length(processed_data)
+
+
+parts_table <- lapply(processed_data, function(x) x[[1]])
+events_table <- lapply(processed_data, function(x) x[[2]])
+
+final_parts <- bind_rows(parts_table)
+
+view(final_parts)
+
+events_all <- lapply(events_table, function(x) x[[1]])
+events_assit_parts <- events_table[2]
+events_victim_damage_dealt <- events_table[3]
+events_victim_damage_recieved <- events_table[4]
+
+final_parts <- bind_rows(parts_table)
+final_events_all <- bind_rows(events_all)
+final_events_assit_parts <- bind_rows(events_assit_parts)
+final_events_victim_damage_dealt <- bind_rows(events_victim_damage_dealt)
+final_events_victim_damage_recieved <- bind_rows(events_victim_damage_recieved)
+
+view(final_events_all)
+
+
+t <- processed_data[[1]]
+str(t)
+
+str(events_table)
+
+
+# think fixed, test again
+testing_function <- function_process_combine(test_list)
+
+view(testing_function$v5_events_victim_damage_recieved)
+
+
+
+# testing with v4 data
+testing_function <- function_process_combine(test_list_w_v4)
+
+str(test_list_w_v4)
+
+view(testing_function$v4_events_victim_damage_dealt)
+
+
+
+# testing only v4 timeline
+test_v4_timeline_data <- function_process_combine(v4_timeline)
+
+# no warning messages
+
+# testing only v4 stats
+test_v4_stats_data <- function_process_combine(test_input_v4_stats)
+
+# error in function process combine, and warning, expected 5 pieces. 
+view(test_v4_stats_data$v4_participant_stats)
+
+which(apply(test_input_v4_stats, 1, function(x) length(x) != 5))
+
+str(test_input_v4_stats)
