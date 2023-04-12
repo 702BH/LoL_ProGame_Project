@@ -420,7 +420,7 @@ function_flatten_teams <- function(data){
   teams$bans.championId <- sapply(teams$bans.championId, paste, collapse = ",")
   
   teams <- teams %>%
-    separate(bans.championId, into = paste0("Ban", 1:5), sep = ",")
+    separate(bans.championId, into = paste0("Ban", 1:5), sep = ",", fill = "right")
   
   return(teams)
   

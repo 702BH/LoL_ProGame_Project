@@ -297,3 +297,52 @@ view(test_v4_stats_data$v4_participant_stats)
 which(apply(test_input_v4_stats, 1, function(x) length(x) != 5))
 
 str(test_input_v4_stats)
+
+
+
+# testing the teams flatten function
+test_input_v4_stats[[7]]$stats_title
+test_json <- test_input_v4_stats[[7]]$content
+
+json <- fromJSON(test_json)
+
+view(json$participantIdentities)
+
+teams <- json$teams
+
+teams <- flatten(teams)
+
+view(teams)
+
+test <- teams %>%
+  unnest_wider(bans, names_sep = ".")
+
+view(test)
+
+teams <- teams %>%
+  unnest_wider(bans, names_sep = ".") %>%
+  select(-bans.pickTurn)
+
+test_flatten <- function_flatten_teams(json)
+
+games_table$StatsPage
+
+games_filtered <- games_table %>%
+  filter(StatsPage == "V4 data:ESPORTSTMNT03 2093869")
+
+view(games_filtered)
+
+teams$bans.championId <- lapply(teams$bans.championId, function(x) champ_names_df$name[match(x, champ_names_df$key)])
+
+teams$bans.championId <- sapply(teams$bans.championId, paste, collapse = ",")
+
+
+teams <- teams %>%
+  separate(bans.championId, into = paste0("Ban", 1:5), sep = ",", fill = "right")
+view(teams)
+
+
+# test again
+test_v4_stats_data <- function_process_combine(test_input_v4_stats)
+
+view(test_v4_stats_data$v4_team_stats)
