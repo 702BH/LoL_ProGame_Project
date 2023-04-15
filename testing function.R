@@ -346,3 +346,15 @@ view(teams)
 test_v4_stats_data <- function_process_combine(test_input_v4_stats)
 
 view(test_v4_stats_data$v4_team_stats)
+
+
+
+
+# testing
+# want to see all tables have all the required relational information
+testing_function <- function_process_combine(test_list_w_v4)
+
+
+
+
+

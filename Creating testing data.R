@@ -76,3 +76,33 @@ str(combined_test_list_with_v4)
 saveRDS(combined_test_list_with_v4, file = "stats_timeline_test_list_with_v4.RData")
 
 test_list_w_v4 <-readRDS("stats_timeline_test_list_with_v4.RData")
+length(test_list_w_v4)
+
+
+
+
+
+
+#### Creating the actual processing data
+stats_data_raw <- read_csv("C:/Users/house/Desktop/Getting into Modelling/Scripts/post_game_stats_raw.csv", col_names = TRUE, locale = readr::locale(encoding = "latin1"))
+
+timeline_data_raw <- read_csv("C:/Users/house/Desktop/Getting into Modelling/Scripts/post_game_timeline_raw.csv", col_names = TRUE, locale = readr::locale(encoding = "latin1"))
+
+
+stats_list <- lapply(seq_len(nrow(stats_data_raw)), function(i){
+  list(stats_title = stats_data_raw$stats_title[i], content =stats_data_raw$content[i])
+  
+})
+
+
+timeline_list <- lapply(seq_len(nrow(timeline_data_raw)), function(i){
+  list(stats_title = timeline_data_raw$stats_title[i], content =timeline_data_raw$content[i])
+  
+})
+
+length(stats_list)
+length(timeline_list)
+
+combined_list <- c(stats_list, timeline_list)
+length(combined_list)
+str(combined_list)

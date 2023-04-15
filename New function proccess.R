@@ -175,6 +175,7 @@ function_check_input_valid_return <- function(list){
 
 # function_0
 function_process_control <- function(list_to_process, data_type){
+  print(list_to_process$stats_title)
   
   # check data type
   if(!str_detect(data_type, "Timeline")){
@@ -249,6 +250,7 @@ function_join_game_info <- function(processed_tibble){
 function_stats_data <- function(raw_data){
   
   raw_data_file <- raw_data
+  print(raw_data_file$stats_title)
   
   json_data <- fromJSON(raw_data$content)
   
@@ -437,7 +439,7 @@ function_flatten_teams <- function(data){
 function_timeline_data <- function(raw_data){
   
   raw_data_file <- raw_data
-  print(raw_data$stats_title)
+  print(raw_data_file$stats_title)
   
   json_data <- fromJSON(raw_data$content)
   
