@@ -249,6 +249,10 @@ function_join_game_info <- function(processed_tibble){
 
 function_stats_data <- function(raw_data){
   
+  tryCatch({
+    
+  
+  
   raw_data_file <- raw_data
   print(raw_data_file$stats_title)
   
@@ -292,13 +296,22 @@ function_stats_data <- function(raw_data){
     # add useful relationship information
     teams <- function_add_relationships(teams, raw_data_file, json_data)
     
-    return(list(participants, teams, NULL))
+    if(class(participants$championId) == "integer"){
+      return(list(NULL, NULL, raw_data_file))
+    }else{
+      return(list(participants, teams, NULL))
+    }
+    
+    
       
   } else{
     # its a fail!
     return(list(NULL, NULL, raw_data_file))
     
   }
+  }, error = function(e){
+    return(list(NULL, NULL, raw_data_file))
+  })
   
   
   
@@ -438,6 +451,11 @@ function_flatten_teams <- function(data){
 #### TIMELINE DATA
 function_timeline_data <- function(raw_data){
   
+  tryCatch({
+    
+  
+  
+  
   raw_data_file <- raw_data
   print(raw_data_file$stats_title)
   
@@ -474,6 +492,10 @@ function_timeline_data <- function(raw_data){
     return(list(NULL, NULL, raw_data_file))
     
   }
+  }, error = function(e){
+    return(list(NULL, NULL, raw_data_file))
+    
+  })
   
   
 }
