@@ -88,8 +88,8 @@ test[[1]]$championId
 error_json <- fromJSON(error_data$content)
 
 # v4 stats
-v5_index <- unlist(lapply(combined_list, function(x) str_detect(x$stats_title, "V5 ")))
-timeline_index <- unlist(lapply(combined_list, function(x) str_detect(x$stats_title, "/Timeline")))
+v5_index <- unlist(lapply(my_list, function(x) str_detect(x$stats_title, "V5 ")))
+timeline_index <- unlist(lapply(my_list, function(x) str_detect(x$stats_title, "/Timeline")))
 
 v4_stats_list <- combined_list[!v5_index & !timeline_index]
 
@@ -108,3 +108,15 @@ error_matches <- function_output$error_matches
 
 errors <-error_matches[!sapply(error_matches,is.null)]
 length(errors)
+
+
+# further diagnosing
+# v4 stats
+v5_index <- unlist(lapply(my_list, function(x) str_detect(x$stats_title, "V5 ")))
+timeline_index <- unlist(lapply(my_list, function(x) str_detect(x$stats_title, "/Timeline")))
+
+v4_stats_list <- my_list[!v5_index & !timeline_index]
+
+length(v4_stats_list)
+
+function_output <- function_process_combine(v4_stats_list)
