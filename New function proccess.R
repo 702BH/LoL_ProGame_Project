@@ -175,7 +175,6 @@ function_check_input_valid_return <- function(list){
 
 # function_0
 function_process_control <- function(list_to_process, data_type){
-  print(list_to_process$stats_title)
   
   # check data type
   if(!str_detect(data_type, "Timeline")){
@@ -294,7 +293,7 @@ function_stats_data <- function(raw_data){
     # add useful relationship information
     teams <- function_add_relationships(teams, raw_data_file, json_data)
     
-    if(class(participants$championId) == "integer"){
+    if(str_detect(raw_data_file$stats_title, "V4 ") && class(participants$championId) == "integer"){
       print("was integer")
       return(list(NULL, NULL, raw_data_file))
     }else{
@@ -345,7 +344,7 @@ function_sep_names <- function(json_data, partiticpant_data){
   if(!"participantIdentities" %in% names(json_data)){
     
     partiticpant_data <- partiticpant_data %>%
-      separate(summonerName, c("team_short", "summoner_name"), sep = " ", remove = FALSE)
+      extract(summonerName, c("team_short", "summoner_name"),"^(\\S+)\\s+(.*)$")
     
     return(partiticpant_data)
     
@@ -356,7 +355,7 @@ function_sep_names <- function(json_data, partiticpant_data){
       select(-profileIcon)
     
     sep_identities <- part_identities %>%
-      separate(summonerName, c("team_short", "summoner_name"), sep = " ", remove = FALSE)
+      extract(summonerName, c("team_short", "summoner_name"),"^(\\S+)\\s+(.*)$")
     
     identities_join <-left_join(partiticpant_data, sep_identities, by = "participantId")
     

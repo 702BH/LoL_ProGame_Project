@@ -240,3 +240,170 @@ teams_unnest2 <- teams2 %>%
   unnest_wider(bans, names_sep = ".")
 
 view(teams_unnest2)
+
+
+
+
+##### RUN - JUST v4 Error diagnositcs
+function_output <- function_process_combine(v4_stats_list)
+
+function_output$error_matches
+
+errors_notnull <-function_output$error_matches[!sapply(function_output$error_matches,is.null)]
+
+length(errors_notnull)
+
+str(errors_notnull)
+
+error_1 <- errors_notnull[[1]]
+error_1
+
+error_1_content <- fromJSON(error_1$content)
+error_1_content$
+
+# does it contain participants and teams? yes
+names(error_1_content)
+
+
+# going through the function processes
+
+# steps of function
+flat <- function_flatten_participants(error_1_content)
+
+flat_add <- function_add_relationships(flat, error_1, error_1_content)
+
+flat_sep <- function_sep_names(error_1_content, flat_add)
+
+flat_item <- function_replace_id_values(flat_sep, "item\\d+$", item_helper)
+
+# replace summoner spell ids with names
+flat_spell <- function_replace_id_values(flat_item, "spell.*Id$", summoner_spell_helper)
+
+flat_champs <- function_replace_champs(flat_spell)
+
+flat_0 <- function_na_to_0(flat_champs)
+
+# convert logicals
+flat_logic <- function_logicals_to_int(flat_0)
+
+colnames(flat_logic)
+
+# filter games table
+games_table_error <- games_table %>%
+  filter(StatsPage == "V4 data:VN 4029131695")
+
+view(games_table_error)
+
+
+# getting v5 data for comparisons
+v5_stats_list <- stats_list[v5_index & !timeline_index]
+
+
+str(v5_stats_list)
+
+str(test)
+
+test <- function_process_combine(v5_stats_list[1])
+colnames(test$v5_participant_stats)
+
+
+
+# testing on errors
+
+
+# testing again
+function_output <- function_process_combine(v4_stats_list)
+options(warn=2)
+
+
+# error occured in splitting the name
+error_data <- stats_data_raw %>%
+  filter(stats_title == "V4 data:ESPORTSTMNT02 1682108")
+
+error_json <- fromJSON(error_data$content)
+
+view(error_json$participantIdentities)
+
+
+flat <- function_flatten_participants(error_json)
+
+flat_add <- function_add_relationships(flat, error_1, error_1_content)
+
+flat_sep <- function_sep_names(error_json, flat_add)
+
+part_identities <- error_json$participantIdentities
+
+view(part_identities)
+
+stats_list <- lapply(seq_len(nrow(error_data)), function(i){
+  list(stats_title = error_data$stats_title[i], content =error_data$content[i])
+  
+})
+
+function_output <- function_process_combine(stats_list)
+function_output$v4_participant_stats$team_name
+
+
+
+
+
+## testing again with the modifications to seperate to extract:
+function_output <- function_process_combine(v4_stats_list)
+options(warn=2)
+
+index <- which(sapply(v4_stats_list, function(x) x$stats_title) == "V4 data:ESPORTSTMNT03 1119121")
+index
+length(v4_stats_list)
+
+
+
+error_data <- stats_data_raw %>%
+  filter(stats_title == "V4 data:ESPORTSTMNT03 1119121")
+
+error_json <- fromJSON(error_data$content)
+
+
+# steps of function
+flat <- function_flatten_participants(error_json)
+
+flat_add <- function_add_relationships(flat, error_1, error_1_content)
+
+flat_sep <- function_sep_names(error_1_content, flat_add)
+
+flat_item <- function_replace_id_values(flat_sep, "item\\d+$", item_helper)
+
+# replace summoner spell ids with names
+flat_spell <- function_replace_id_values(flat_item, "spell.*Id$", summoner_spell_helper)
+
+flat_champs <- function_replace_champs(flat_spell)
+
+flat_0 <- function_na_to_0(flat_champs)
+
+# convert logicals
+flat_logic <- function_logicals_to_int(flat)
+
+
+logicals <- sapply(flat, is.logical)
+logicals_cols <- which(logicals)
+
+print(logicals)
+
+which(logicals == TRUE)
+
+view(flat$stats.win)
+
+class(flat$stats.win)
+
+flat[,logicals_cols] <- lapply(flat[,logicals_cols], as.integer)
+
+function_logicals_to_int <- function(processing_data){
+  
+  ## check for logicals
+  logicals <- sapply(processing_data, is.logical)
+  
+  # convert logicals 
+  processing_data[,logicals] <- lapply(processing_data[,logicals], as.integer)
+  
+  return(processing_data)
+  
+}
