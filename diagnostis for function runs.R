@@ -120,3 +120,123 @@ v4_stats_list <- my_list[!v5_index & !timeline_index]
 length(v4_stats_list)
 
 function_output <- function_process_combine(v4_stats_list)
+
+
+
+
+
+
+
+# exploring the errors caused in V4 data
+v5_index <- unlist(lapply(stats_list, function(x) str_detect(x$stats_title, "V5 ")))
+timeline_index <- unlist(lapply(stats_list, function(x) str_detect(x$stats_title, "/Timeline")))
+
+v4_stats_list <- stats_list[!v5_index & !timeline_index]
+
+function_output <- function_process_combine(v4_stats_list)
+dim(function_output$v4_participant_stats)
+
+errors <- function_output$error_matches
+length(errors)
+
+errors_notnull <-errors[!sapply(errors,is.null)]
+
+length(errors_notnull)
+
+error_1 <- errors_notnull[[1]]
+error_1$stats_title
+error_1
+
+error_1_content <- fromJSON(error_1$content)
+
+names(error_1_content)
+
+error_1_parts <- error_1_content$participants
+
+colnames(error_1_parts)
+
+# steps of function
+flat <- function_flatten_participants(error_1_content)
+
+flat_add <- function_add_relationships(flat, error_1, error_1_content)
+
+flat_sep <- function_sep_names(error_1_content, flat_add)
+
+flat_item <- function_replace_id_values(flat_sep, "item\\d+$", item_helper)
+
+# replace summoner spell ids with names
+flat_spell <- function_replace_id_values(flat_item, "spell.*Id$", summoner_spell_helper)
+
+flat_champs <- function_replace_champs(flat_spell)
+
+flat_0 <- function_na_to_0(flat_champs)
+
+# convert logicals
+flat_logic <- function_logicals_to_int(flat_0)
+
+flat_logic$championId
+class(flat_logic$championId)
+
+dim(flat_logic)
+
+str(v4_stats_list)
+
+
+
+
+
+index <- which(sapply(v4_stats_list, function(x) x$stats_title) == "V4 data:ESPORTSTMNT01 1881943")
+index
+v4_stats_list[3679]
+v4_stats_list[3678]
+str(v4_stats_list[3678:3679])
+
+test_list2 <- v4_stats_list[3678:3679]
+
+test_output <- function_process_combine(test_list2)
+
+view(test_output$v4_team_stats)
+
+test_output$error_matches
+
+test_list3 <- v4_stats_list[3679]
+test_output3 <- function_process_combine(test_list3)
+
+
+# exploring the teams process
+content <- fromJSON(test_list3[[1]]$content)
+
+teams <- content$teams
+
+teams$bans
+
+teams_unnest <- teams %>%
+  unnest_wider(bans, names_sep = ".")
+
+view(teams_unnest)
+length(teams$bans)
+lengths(teams$bans)
+
+teams3 <- NULL
+
+if(any(lengths(teams$bans) == 0)){
+  teams3 <- teams2 %>%
+    select(-bans) %>%
+    add_column(bans.championId = NA)
+}
+
+view(teams3)
+
+content2 <- fromJSON(v4_stats_list[3678][[1]]$content)
+
+teams2 <- content2$teams
+
+teams2$bans
+  
+view(teams2)
+length(teams2$bans)
+
+teams_unnest2 <- teams2 %>%
+  unnest_wider(bans, names_sep = ".")
+
+view(teams_unnest2)

@@ -248,8 +248,6 @@ function_join_game_info <- function(processed_tibble){
 
 
 function_stats_data <- function(raw_data){
-  
-  tryCatch({
     
   
   
@@ -297,6 +295,7 @@ function_stats_data <- function(raw_data){
     teams <- function_add_relationships(teams, raw_data_file, json_data)
     
     if(class(participants$championId) == "integer"){
+      print("was integer")
       return(list(NULL, NULL, raw_data_file))
     }else{
       return(list(participants, teams, NULL))
@@ -309,9 +308,6 @@ function_stats_data <- function(raw_data){
     return(list(NULL, NULL, raw_data_file))
     
   }
-  }, error = function(e){
-    return(list(NULL, NULL, raw_data_file))
-  })
   
   
   
@@ -426,16 +422,26 @@ function_flatten_teams <- function(data){
   
   teams <- flatten(teams)
   
-  teams <- teams %>%
-    unnest_wider(bans, names_sep = ".") %>%
-    select(-bans.pickTurn)
+  if(any(lengths(teams$bans) == 0)){
+    teams <- teams %>%
+      select(-bans)
+      
+  } else{
+    
+    teams <- teams %>%
+      unnest_wider(bans, names_sep = ".") %>%
+      select(-bans.pickTurn)
+    
+    teams$bans.championId <- lapply(teams$bans.championId, function(x) champ_names_df$name[match(x, champ_names_df$key)])
+    
+    teams$bans.championId <- sapply(teams$bans.championId, paste, collapse = ",")
+    
+    teams <- teams %>%
+      separate(bans.championId, into = paste0("Ban", 1:5), sep = ",", fill = "right")
+    
+  }
   
-  teams$bans.championId <- lapply(teams$bans.championId, function(x) champ_names_df$name[match(x, champ_names_df$key)])
   
-  teams$bans.championId <- sapply(teams$bans.championId, paste, collapse = ",")
-  
-  teams <- teams %>%
-    separate(bans.championId, into = paste0("Ban", 1:5), sep = ",", fill = "right")
   
   return(teams)
   
