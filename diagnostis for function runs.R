@@ -362,6 +362,11 @@ error_data <- stats_data_raw %>%
 
 error_json <- fromJSON(error_data$content)
 
+games_table_error <- games_table %>%
+  filter(StatsPage == "V4 data:ESPORTSTMNT03 1119121")
+
+view(games_table_error)
+
 
 # steps of function
 flat <- function_flatten_participants(error_json)
@@ -386,7 +391,15 @@ flat_logic <- function_logicals_to_int(flat)
 logicals <- sapply(flat, is.logical)
 logicals_cols <- which(logicals)
 
+cols_log <- sapply(flat, is.logical)
+
+flat[,cols_log] <- sapply(flat[,cols_log], as.integer)
+
+flat$stats.win
+
 print(logicals)
+print(logicals_cols)
+colnames(flat)
 
 which(logicals == TRUE)
 
@@ -396,14 +409,56 @@ class(flat$stats.win)
 
 flat[,logicals_cols] <- lapply(flat[,logicals_cols], as.integer)
 
-function_logicals_to_int <- function(processing_data){
-  
-  ## check for logicals
-  logicals <- sapply(processing_data, is.logical)
-  
-  # convert logicals 
-  processing_data[,logicals] <- lapply(processing_data[,logicals], as.integer)
-  
-  return(processing_data)
-  
-}
+
+test_log <- function_logicals_to_int(flat)
+
+cols_log <- sapply(flat, is.logical)
+
+flat[,cols_log] <- lapply(flat[,cols_log], as.integer)
+
+
+
+# exploring other games to see differences
+error_data2 <- stats_data_raw %>%
+  filter(stats_title == "V4 data:ESPORTSTMNT02 1682108")
+
+
+error_json2 <- fromJSON(error_data2$content)
+
+
+# steps of function
+flat2 <- function_flatten_participants(error_json2)
+
+logicals2 <- sapply(flat2, is.logical)
+logicals_cols2 <- which(logicals2)
+
+print(logicals2)
+print(logicals_cols2)
+
+flat2[,logicals_cols] <- lapply(flat2[,logicals_cols], as.integer)
+
+cols_log <- sapply(flat2, is.logical)
+
+flat2[,cols_log] <- lapply(flat2[,cols_log], as.integer)
+
+
+
+
+
+# running again to check for warning causing errors:
+v5_index <- unlist(lapply(stats_list, function(x) str_detect(x$stats_title, "V5 ")))
+timeline_index <- unlist(lapply(stats_list, function(x) str_detect(x$stats_title, "/Timeline")))
+
+v4_stats_list <- stats_list[!v5_index & !timeline_index]
+
+function_output <- function_process_combine(v4_stats_list)
+
+errors_notnull <-function_output$error_matches[!sapply(function_output$error_matches,is.null)]
+
+length(errors_notnull)
+
+str(errors_notnull)
+
+
+
+# 

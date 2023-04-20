@@ -403,11 +403,11 @@ function_na_to_0 <- function(processing_data){
 # convert logicals
 function_logicals_to_int <- function(processing_data){
   
-  ## check for logicals
-  logicals <- sapply(processing_data, is.logical)
+  # identify logical columns
+  cols_log <- sapply(processing_data, is.logical)
   
-  # convert logicals 
-  processing_data[,logicals] <- lapply(processing_data[,logicals], as.integer)
+  # convert to logical
+  processing_data[,cols_log] <- sapply(processing_data[,cols_log], as.integer)
   
   return(processing_data)
   
