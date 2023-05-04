@@ -220,6 +220,10 @@ for(i in tournaments_data_filtered$Name){
 
 games_df <- bind_rows(games_list)
 
+emptylists <- bind_rows(failed_names)
+
 view(games_df)
+
+colnames(emptylists)
 
 write.csv(games_df, "picksandbans19.csv",  row.names = FALSE)
